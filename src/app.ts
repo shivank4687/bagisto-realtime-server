@@ -48,6 +48,32 @@ app.get('/metrics', (req, res) => {
     });
 });
 
+// Socket.IO emit endpoint (for Laravel backend to trigger events)
+let socketIO: any = null;
+export const setSocketIO = (io: any) => {
+    socketIO = io;
+};
+
+app.post('/api/emit', (req, res) => {
+    try {
+        const { room, event, data } = req.body;
+
+        if (!socketIO) {
+            return res.status(503).json({ error: 'Socket.IO not initialized' });
+        }
+
+        if (!room || !event) {
+            return res.status(400).json({ error: 'Missing required fields: room, event' });
+        }
+
+        socketIO.to(room).emit(event, data);
+        res.json({ success: true, room, event });
+    } catch (error) {
+        console.error('Error emitting Socket.IO event:', error);
+        res.status(500).json({ error: 'Failed to emit event' });
+    }
+});
+
 // 404 handler
 app.use((req, res) => {
     res.status(404).json({ error: 'Not found' });

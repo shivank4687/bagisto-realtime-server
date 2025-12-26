@@ -1,6 +1,6 @@
 import http from 'http';
 import { Server } from 'socket.io';
-import app from './app';
+import app, { setSocketIO } from './app';
 import { config } from '@config/index';
 import logger from '@services/logger.service';
 import redisService from '@services/redis.service';
@@ -26,6 +26,9 @@ const io = new Server(server, {
     pingTimeout: config.socket.pingTimeout,
     pingInterval: config.socket.pingInterval,
 });
+
+// Make io available to Express app for emit endpoint
+setSocketIO(io);
 
 // Apply middleware
 io.use(authMiddleware);
