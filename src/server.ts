@@ -63,7 +63,15 @@ if (redisService.isEnabled()) {
                 // Broadcast to appropriate room
                 if (channel.startsWith('message:')) {
                     const roomName = channel.replace('message:', '');
-                    io.to(roomName).emit('rfq:new-message', data);
+
+                    // Exclude sender's socket if senderSocketId is present
+                    if (data.senderSocketId) {
+                        logger.debug(`Broadcasting to room ${roomName}, excluding sender ${data.senderSocketId}`);
+                        io.to(roomName).except(data.senderSocketId).emit('rfq:new-message', data);
+                    } else {
+                        logger.warn(`No senderSocketId in message data for room ${roomName}`);
+                        io.to(roomName).emit('rfq:new-message', data);
+                    }
                 }
             } catch (error) {
                 logger.error('Error processing Redis message:', error);
