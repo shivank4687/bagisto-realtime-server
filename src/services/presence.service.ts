@@ -91,6 +91,53 @@ class PresenceService {
         const key = this.getPresenceKey(quoteId, customerQuoteId, userId, userType);
         return await cacheService.get<PresenceData>(key);
     }
+
+    /**
+     * Generate Redis key for order chat presence tracking
+     */
+    private getOrderPresenceKey(
+        orderId: number,
+        userId: number,
+        userType: 'customer' | 'supplier'
+    ): string {
+        return `presence:order:${orderId}:${userType}:${userId}`;
+    }
+
+    /**
+     * Set user presence in order chat room
+     */
+    async setOrderPresence(
+        socketId: string,
+        orderId: number,
+        userId: number,
+        userName: string,
+        userType: 'customer' | 'supplier'
+    ): Promise<void> {
+        const key = this.getOrderPresenceKey(orderId, userId, userType);
+        const data: PresenceData = {
+            socketId,
+            userId,
+            userName,
+            userType,
+            timestamp: new Date().toISOString(),
+        };
+
+        await cacheService.set(key, data);
+        logger.info(`Presence set: ${userName} (${userType}) in Order ${orderId}`);
+    }
+
+    /**
+     * Remove user presence from order chat room
+     */
+    async removeOrderPresence(
+        orderId: number,
+        userId: number,
+        userType: 'customer' | 'supplier'
+    ): Promise<void> {
+        const key = this.getOrderPresenceKey(orderId, userId, userType);
+        await cacheService.delete(key);
+        logger.info(`Presence removed: ${userType} ${userId} from Order ${orderId}`);
+    }
 }
 
 export default new PresenceService();

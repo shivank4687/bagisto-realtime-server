@@ -8,6 +8,7 @@ export interface SocketData {
         quoteId: number;
         customerQuoteId: number;
     }>;
+    orderRooms?: number[];
 }
 
 export type AuthenticatedSocket = IOSocket<any, any, any, SocketData>;
